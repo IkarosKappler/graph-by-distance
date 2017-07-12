@@ -1,0 +1,65 @@
+/**
+ * @author Ikaros Kappler
+ * @date   2017-04-10
+ **/
+
+html, body {
+    width              : 100%;
+    height             : 100%;
+}
+.zoomContainer {
+    width              : 100%;
+    height             : 100%;
+    background         : #f8f8f8;
+}
+
+.draggable {
+    /* Not really draggable. Maybe later. */
+    position           : absolute;
+}
+
+#zoomTarget-1 {
+    background         : #1d75f2;
+    width              : 100px;
+    height             : 75px;
+
+    left               : 360px;
+    top                : 300px;
+}
+
+#zoomTarget-2 {
+    background         : #ff6600;
+    width              : 120px;
+    height             : 90px;
+
+    left               : 240px;
+    top                : 120px;
+
+    -webkit-transform  : rotate(35deg);
+    -moz-transform     : rotate(35deg);
+    -o-transform       : rotate(35deg);
+    transform          : rotate(35deg);
+}
+
+#zoomTarget-3 {
+    background         : #d81a60;
+    width              : 100px;
+    height             : 75px;
+
+    left               : 460px;
+    top                : 200px;
+
+    -webkit-transform  : skewX(35deg) rotate(15deg);
+    -moz-transform     : skewX(35deg) rotate(15deg);
+    -o-transform       : skewX(35deg) rotate(15deg);
+    transform          : skewX(35deg) rotate(15deg);
+
+}
+
+.zoomViewport {
+    width              : 100%;
+    height             : 100%;
+    border             : 1px solid grey;
+    border-radius      : 4px;
+    position           : relative;
+}

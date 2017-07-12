@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Graph-by-distance visualization</title>
+    <meta charset="UTF-8" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="description" content="A graph that visualizes thei distances of random moving points." />
+    <meta name="keywords" content="Javascript, Canvas, Graph, Distance, Math" />
+    <meta name="author" content="Ikaros Kappler" />
+    <meta name="date" content="2017-07-12" />
+
+    
+    <script src="jquery-3.2.0.min.js"></script>
+    <!-- <script src="rAF.polyfill.js"></script> -->
+    <script src="Graph.class.js"></script>
+    <script src="main.js"></script>
+    <link rel="stylesheet" type="text/css" media="screen" href="style.css" />    
+  </head>
+  <body>
+    <div id="input-box">
+      <div class="input-label">#Points:</div> <input type="number" id="point_count" value="40" step="1" /><br/>
+    </div>
+    <canvas id="my-canvas" width="1024" height="768" />
+  </body>
+</html>
