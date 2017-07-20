@@ -9,20 +9,24 @@
 
 (function($) {
 
-    var MAX_DIST  = 200;
+    //var MAX_DIST  = 200;
     var MIN_SPEED = 10;
     var DEFAULT_CANVAS_WIDTH = 1024;
     var DEFAULT_CANVAS_HEIGHT = 768;
+    var POINT_COLORS = [ Color.makeRGB(255,0,0), Color.makeRGB(0,255,0), Color.makeRGB(0,0,255) ];
     
     $( document ).ready( function() {
 
 	var config = {
-	    pointCount  : 45,
-	    drawPoints  : true,
-	    drawEdges   : true,
-	    clearCanvas : true,
-	    fullSize    : false,
-	    reset       : function() { reset(); } 
+	    pointCount        : 45,
+	    drawPoints        : true,
+	    drawEdges         : true,
+	    speed             : 4,
+	    maxDist           : 200,
+	    clearCanvas       : true,
+	    fullSize          : false,
+	    randomPointColors : false,
+	    reset             : function() { reset(); } 
 	};
 	
 	var $canvas          = $( 'canvas#my-canvas' );
@@ -75,11 +79,12 @@
 	// +-------------------------------
 	var randomPair = function() {
 	    var p      = randomBorderPoint();
+	    p.color = config.randomPointColors ? randomPointColor() : Color.makeRGB(0,0,255); // 'blue';
 	    var target = randomPoint();
 	    //console.log( p );
 	    return { p : p,
-		     v : new Point( absMax((target.x-p.x),MIN_SPEED)/800,
-				    absMax((target.y-p.y),MIN_SPEED)/800
+		     v : new Point( absMax((target.x-p.x),MIN_SPEED)/(800*4),
+				    absMax((target.y-p.y),MIN_SPEED)/(800*4)
 				  )
 		   };
 	};
@@ -98,14 +103,21 @@
 	    // Determine one of the borders depending on canvas size
 	    var rand = randomInt( canvasSize.width*2 + canvasSize.height*2 );
 	    if( rand < canvasSize.width ) // left border
-		return new Point( -MAX_DIST, randomInt(canvasSize.height) );
+		return new Point( -config.maxDist, randomInt(canvasSize.height) );
 	    if( rand < canvasSize.width*2 ) // right border
-		return new Point( canvasSize.width+MAX_DIST, randomInt(canvasSize.height) );
+		return new Point( canvasSize.width+config.maxDist, randomInt(canvasSize.height) );
 	    
 	    if( rand < canvasSize.width*2+canvasSize.height ) // top border
-		return new Point( randomInt(canvasSize.width), -MAX_DIST );
+		return new Point( randomInt(canvasSize.width), -config.maxDist );
 	    // else: bottom border
-	        return new Point( randomInt(canvasSize.width), canvasSize.height+MAX_DIST );
+	        return new Point( randomInt(canvasSize.width), canvasSize.height+config.maxDist );
+	};
+
+	// +---------------------------------------------------------------------------------
+	// | randomPointColor returns ... yeah, well ... a random point color.
+	// +-------------------------------
+	var randomPointColor = function() {
+	    return POINT_COLORS[ randomInt(POINT_COLORS.length-1) ];
 	};
 
 	// +---------------------------------------------------------------------------------
@@ -120,7 +132,7 @@
 	// | (including the distance tolerance).
 	// +-------------------------------
 	var outOfBounds = function(p) {
-	    return p.x < -MAX_DIST || p.x > canvasSize.width+MAX_DIST || p.y < -MAX_DIST || p.y > canvasSize.height+MAX_DIST;
+	    return p.x < -config.maxDist || p.x > canvasSize.width+config.maxDist || p.y < -config.maxDist || p.y > canvasSize.height+config.maxDist;
 	};
 
 	// +---------------------------------------------------------------------------------
@@ -161,21 +173,29 @@
 	    }
 
 	    if( config.drawEdges ) {
-		//console.log('draw edges');
 		for( var a in pointList ) {
 		    var pA = pointList[a].p;
 		    for( var b = a; b < pointList.length; b++ ) {
 			var pB = pointList[b].p;
 			var dist = Math.sqrt( Math.pow(pA.x-pB.x,2) + Math.pow(pA.y-pB.y,2) );
 
-			//console.log('draw edges A');
-			if( dist >= MAX_DIST )
+			if( dist >= config.maxDist )
 			    continue;
-			//console.log('draw edges B');
 
-			var alpha = (MAX_DIST-dist)/MAX_DIST;
+			var alpha = (config.maxDist-dist)/config.maxDist;
+
+			if( false && config.randomPointColors ) {
+			    var grad= ctx.createLinearGradient( pA.x, pA.y, pB.x, pB.y );
+			    var colA = pA.color.clone(); //colA.a = alpha;
+			    var colB = pB.color.clone(); //colB.a = alpha;
+			    console.log( colA.cssRGBA() );
+			    grad.addColorStop(0, colA.cssRGBA() );
+			    grad.addColorStop(1, colB.cssRGBA() );
 			
-			ctx.strokeStyle = 'rgba(255,255,255,' + alpha + ')';
+			    ctx.strokeStyle = grad;
+			} else {
+			    ctx.strokeStyle = 'rgba(255,255,255,' + alpha + ')';
+			}
 			ctx.beginPath();
 			ctx.moveTo( pA.x, pA.y );
 			ctx.lineTo( pB.x, pB.y );
@@ -188,7 +208,7 @@
 
 	    for( var i in pointList ) {
 		if( config.drawPoints )
-		    drawPoint( pointList[i].p, 'blue' );
+		    drawPoint( pointList[i].p, pointList[i].p.color.cssRGBA() ); // 'blue' );
 		
 		// Reset points that are out of visible bounds
 		if( outOfBounds(pointList[i].p) )
@@ -210,8 +230,8 @@
 	    }
 	};
 	init();
-	
-	// redraw();
+
+	// Initially clear canvas
 	ctx.fillStyle = 'black';
 	ctx.fillRect(0,0,canvasSize.width,canvasSize.height);
 	
@@ -219,8 +239,8 @@
 	    for( var i in pointList ) {
 		var p = pointList[i].p;
 		var v = pointList[i].v;
-		p.x += v.x;
-		p.y += v.y;
+		p.x += v.x*config.speed;
+		p.y += v.y*config.speed;
 	    }
 	    redraw(forceClear);
 	    requestAnimationFrame( function() { renderNext(false); } );
@@ -271,12 +291,15 @@
 	$(document).ready( function() { 
 	    var gui = new dat.gui.GUI();
 	    gui.remember(config);
-	    gui.add(config, 'pointCount').min(1).max(100).onChange( updatePointCount );
+	    gui.add(config, 'pointCount').min(1).max(200).onChange( updatePointCount );
 	    gui.add(config, 'drawPoints');
 	    gui.add(config, 'drawEdges');
+	    gui.add(config, 'speed').min(1).max(25).step(1);
+	    gui.add(config, 'maxDist').min(1).max(1000).step(10);
 	    gui.add(config, 'clearCanvas');
 	    gui.add(config, 'fullSize').onChange( resizeCanvas );
-	    gui.add(config, 'reset').onChange( reset );
+	    gui.add(config, 'randomPointColors' );
+	    gui.add(config, 'reset'); // .onChange( reset );
 	    //dat.gui.GUI.toggleHide();
 	    gui.closed = true;
 	} );
